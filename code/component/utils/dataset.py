@@ -3,10 +3,13 @@ import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from pathlib import Path
+
+project_root = Path(__file__).resolve().parents[3]
 
 class VideoDataset(Dataset):
     def __init__(self, data_dir, classes, sequence_length=20, image_height=64, image_width=64):
-        self.data_dir = data_dir
+        self.data_dir = os.path.join(project_root, data_dir)
         self.classes = classes
         self.sequence_length = sequence_length
         self.image_height = image_height
