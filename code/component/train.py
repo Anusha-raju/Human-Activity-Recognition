@@ -50,7 +50,7 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 train_losses, val_losses = [], []
 train_accuracies, val_accuracies = [], []
 best_test_acc = 0
-best_model_path = None
+best_model_state_dict = None  # To store the best model's state_dict
 
 # Logging setup using logging module
 log_file = "train.log"
@@ -107,21 +107,27 @@ for epoch in range(EPOCHS):
             test_total += labels.size(0)
     test_acc = 100 * test_correct / test_total
 
-    # Save best model
+    # Track best model
     if test_acc > best_test_acc:
         best_test_acc = test_acc
-        timestamp = datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
-        best_model_path = f"saved_models/lrcn_best_{timestamp}.pth"
-        os.makedirs("saved_models", exist_ok=True)
-        torch.save(model.state_dict(), best_model_path)
+        best_model_state_dict = model.state_dict()  # Store the state dict of the best model
 
     # Log metrics to train.log
     logging.info(f"{epoch+1}, {acc:.2f}, {val_acc:.2f}, {test_acc:.2f}")
 
     print(f"[Epoch {epoch+1}] Train Acc: {acc:.2f}%, Val Acc: {val_acc:.2f}%, Test Acc: {test_acc:.2f}%")
 
+# After training ends, save the best model
+if best_model_state_dict is not None:
+    timestamp = datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
+    best_model_path = f"saved_models/lrcn_best_{timestamp}.pth"
+    os.makedirs("saved_models", exist_ok=True)
+    torch.save(best_model_state_dict, best_model_path)
+
+    print(f"Best model saved at {best_model_path}")
+
 # Load best model for final evaluation
-model.load_state_dict(torch.load(best_model_path))
+model.load_state_dict(best_model_state_dict)
 model.eval()
 
 def evaluate(model, dataloader, name=""):
