@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
-dropout_prob = 0.3
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+dropout_prob = float(os.getenv("DROPOUT"))
 class LRCN(nn.Module):
     def __init__(self, num_classes):
         super(LRCN, self).__init__()

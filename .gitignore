@@ -8,6 +8,7 @@ code/component/utils/__pycache__/
 # Ignore the 'outputs' and 'saved_models' directories
 code/component/outputs/
 code/component/saved_models/
+code/component/models/
 
 # Ignore the 'train.log' file
 code/component/train.log
