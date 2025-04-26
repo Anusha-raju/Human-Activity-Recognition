@@ -2,10 +2,20 @@ import logging
 import torch
 import datetime
 import os
+import cv2
+from PIL import Image
+import json
+from torchvision import transforms
 from dotenv import load_dotenv
 load_dotenv()
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'code/')))
+
+from component.model import LRCN
+
 # MODEL_DIR TO SAVED MODEL
 MODEL_DIR = os.getenv("MODEL_DIR", "models")
+MODEL_PATH = os.getenv("MODEL_PATH")
 # Logging setup using logging module
 logging.basicConfig(filename=os.getenv("LOG_FILE_PATH"),
                     level=logging.INFO,
@@ -75,3 +85,62 @@ def get_current_lr(optimizer):
     """
     for param_group in optimizer.param_groups:
         return param_group['lr']
+
+def load_model():
+    """
+    Loads the pre-trained model.
+
+    Args:
+    Returns:
+        model: The loaded LRCN model.
+    """
+    model = LRCN(num_classes=len(json.loads(os.getenv("CLASSES_LIST"))))
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
+
+def process_video_frames(video_path):
+    """
+    Processes video frames and converts them to tensors.
+
+    Args:
+        video_path (str): Path to the input video file.
+        sequence_length (int): Number of frames to extract.
+        transform (torchvision.transforms.Compose): The transformation to apply to each frame.
+
+    Returns:
+        frames (list): List of original frames.
+        transformed (list): List of transformed frames (tensor format).
+    """
+    image_height=int(os.getenv("IMAGE_HEIGHT"))
+    image_width=int(os.getenv("IMAGE_WIDTH"))
+
+    sequence_length=int(os.getenv("SEQUENCE_LENGTH"))
+    # Define the same transform used in training
+    transform = transforms.Compose([
+        transforms.Resize((image_height, image_width)),
+        transforms.ToTensor()
+    ])
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    step = max(int(total_frames / sequence_length), 1)
+
+    frames = []
+    transformed = []
+
+    for i in range(sequence_length):
+        cap.set(cv2.CAP_PROP_POS_FRAMES, i * step)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        resized = cv2.resize(rgb_frame, (image_width, image_height))
+        pil_image = Image.fromarray(resized)
+        tensor = transform(pil_image)
+        frames.append(frame)  # Original frame
+        transformed.append(tensor)  # Transformed frame (used for prediction)
+    
+    cap.release()
+    return frames, transformed
