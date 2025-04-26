@@ -24,7 +24,7 @@ class VideoDataset(Dataset):
         image_width (int, optional): Width to which each video frame will be resized (default is 64).
         transform (callable, optional): A function/transform to apply to each frame (default is None).
     """
-    def __init__(self, data_dir, classes, sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH")), transform=None):
+    def __init__(self, data_dir, classes, sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH"))):
         """
         Initializes the dataset by loading video paths and corresponding labels, and applies any given transformations.
 
@@ -41,7 +41,15 @@ class VideoDataset(Dataset):
         self.sequence_length = sequence_length
         self.image_height = image_height
         self.image_width = image_width
-        self.transform = transform
+        self.transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(20),
+            transforms.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0)),
+            transforms.GaussianBlur(kernel_size=5),
+            transforms.RandomGrayscale(p=0.1),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+            transforms.ToTensor(),
+        ])
         self.videos = []  # List to store videos as sequences of frames
         self.labels = []  # List to store corresponding class labels
         self._load_dataset()

@@ -13,3 +13,4 @@ code/component/models/
 # Ignore the 'train.log' file
 code/component/train.log
 code/component/train_.log
+venv/

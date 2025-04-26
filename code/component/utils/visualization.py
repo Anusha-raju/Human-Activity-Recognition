@@ -10,7 +10,7 @@ plot_output_path = os.getenv("PLOT_OUTPUT_PATH")
 if not os.path.exists(plot_output_path):
     os.makedirs(plot_output_path)
 
-def plot_metrics(train_acc, test_acc, val_acc, train_loss, test_loss, val_loss):
+def plot_metrics(train_acc, test_acc, train_loss, test_loss):
     """
     Plots and saves accuracy and loss curves for training, testing, and validation metrics.
 
@@ -35,7 +35,6 @@ def plot_metrics(train_acc, test_acc, val_acc, train_loss, test_loss, val_loss):
     plt.figure()
     plt.plot(train_acc, label='Train Accuracy')
     plt.plot(test_acc, label='Test Accuracy')
-    plt.plot(val_acc, label='Validation Accuracy')
 
     plt.title('Accuracy Curve')
     plt.xlabel('Epoch')
@@ -51,7 +50,6 @@ def plot_metrics(train_acc, test_acc, val_acc, train_loss, test_loss, val_loss):
     plt.figure()
     plt.plot(train_loss, label='Train Loss')
     plt.plot(test_loss, label='Test Loss')
-    plt.plot(val_loss, label='Validation Loss')
 
     plt.title('Loss Curve')
     plt.xlabel('Epoch')

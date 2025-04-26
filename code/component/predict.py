@@ -1,70 +1,76 @@
 import torch
 import cv2
 import numpy as np
+from PIL import Image
+from torchvision import transforms
 from model import LRCN
+import os
 from dotenv import load_dotenv
+import json
+# Load environment variables from .env file
 load_dotenv()
 
-# Load environment variables
-CLASSES_LIST = os.getenv("CLASSES_LIST")
-IMAGE_HEIGHT, IMAGE_WIDTH, SEQUENCE_LENGTH = os.getenv("IMAGE_HEIGHT"), os.getenv("IMAGE_WIDTH"), os.getenv("SEQUENCE_LENGTH")
-
-def predict_video(video_path, model_path):
+def predict_video_class(video_path, model_path, class_names = json.loads(os.getenv("CLASSES_LIST")), sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH")), device=None):
     """
-    Predicts the class label for a given video using a pre-trained LRCN model.
+    Predicts the class of a video using a trained LRCN model.
 
     Args:
-        video_path (str): The file path to the video that needs to be classified.
-        model_path (str): The file path to the pre-trained model's state dictionary.
-
-    Steps:
-        1. Reads and extracts frames from the video at the specified `video_path`.
-        2. Preprocesses the frames (resizing and normalizing).
-        3. Loads the pre-trained LRCN model from the `model_path`.
-        4. Passes the video frames through the model to obtain predictions.
-        5. Returns the predicted class label based on the model's output.
+        video_path (str): Path to the input video file.
+        model_path (str): Path to the trained model weights (.pt file).
+        class_names (list): List of class labels (index to string).
+        sequence_length (int): Number of frames to sample from the video.
+        image_height (int): Height of each frame.
+        image_width (int): Width of each frame.
+        device (str or torch.device): "cuda" or "cpu".
 
     Returns:
-        str: The predicted class label for the video, printed to the console.
-        
-    If the number of frames in the video is less than the required `SEQUENCE_LENGTH`, 
-    the function will print "Not enough frames" and exit.
-
-    Example:
-        predict_video("path/to/video.mp4", "saved_models/lrcn_best.pth")
+        str: Predicted class label.
     """
-    # Capture video frames
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Define the same transform used in training
+    transform = transforms.Compose([
+        transforms.Resize((image_height, image_width)),
+        transforms.ToTensor()
+    ])
+
+    # Load the model and weights
+    model = LRCN(num_classes=len(class_names))
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+
+    # Extract frames
     cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    step = max(int(total_frames / sequence_length), 1)
+    
     frames = []
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    step = max(int(total / SEQUENCE_LENGTH), 1)
-    for i in range(SEQUENCE_LENGTH):
+    for i in range(sequence_length):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * step)
         success, frame = cap.read()
         if not success:
             break
-        frame = cv2.resize(frame, (IMAGE_WIDTH, IMAGE_HEIGHT))
-        frame = frame / 255.0  # Normalize the frame
-        frames.append(frame)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.resize(frame, (image_width, image_height))
+        frame_pil = Image.fromarray(frame)
+        frame_tensor = transform(frame_pil)
+        frames.append(frame_tensor)
     cap.release()
 
-    # If there are not enough frames, return early
-    if len(frames) < SEQUENCE_LENGTH:
-        print("Not enough frames")
-        return
+    if len(frames) < sequence_length:
+        raise ValueError(f"Could only extract {len(frames)} frames, expected {sequence_length}")
 
-    # Convert frames into a tensor
-    video = torch.FloatTensor(np.stack(frames)).permute(0, 3, 1, 2).unsqueeze(0)
-
-    # Load model and make prediction
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = LRCN(num_classes=len(CLASSES_LIST)).to(device)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
+    video_tensor = torch.stack(frames).unsqueeze(0).to(device)  # shape: [1, T, C, H, W]
 
     with torch.no_grad():
-        output = model(video.to(device))
-        pred = output.argmax(dim=1).item()
+        output = model(video_tensor)
+        predicted_idx = output.argmax(dim=1).item()
     
-    # Output predicted class
-    return f"Predicted Class: {CLASSES_LIST[pred]}"
+    return class_names[predicted_idx]
+
+# video_path = "/home/ubuntu/Human-Activity-Recognition/Data/UCF50/BaseballPitch/v_BaseballPitch_g01_c01.avi"
+# model_path = "/home/ubuntu/Human-Activity-Recognition/code/component/models/lrcn_best_2025_04_25__19_49_33.pth"
+# predicted_class = predict_video_class(video_path, model_path)
+# print("Predicted Class:", predicted_class)
