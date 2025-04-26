@@ -17,14 +17,12 @@ def plot_metrics(train_acc, test_acc, train_loss, test_loss):
     Args:
         train_acc (list): A list of training accuracy values across epochs.
         test_acc (list): A list of testing accuracy values across epochs.
-        val_acc (list): A list of validation accuracy values across epochs.
         train_loss (list): A list of training loss values across epochs.
         test_loss (list): A list of testing loss values across epochs.
-        val_loss (list): A list of validation loss values across epochs.
 
     Saves two plots:
-        1. Accuracy Curve: A plot showing the accuracy for train, test, and validation sets over epochs.
-        2. Loss Curve: A plot showing the loss for train, test, and validation sets over epochs.
+        1. Accuracy Curve: A plot showing the accuracy for train & test sets over epochs.
+        2. Loss Curve: A plot showing the loss for train & test sets over epochs.
         
     The plots are saved as PNG files at the directory specified by the `PLOT_OUTPUT_PATH` environment variable.
 

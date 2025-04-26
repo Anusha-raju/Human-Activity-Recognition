@@ -1,16 +1,18 @@
 import torch
+import os
 import cv2
 import numpy as np
 from PIL import Image
 from torchvision import transforms
-from model import LRCN
-import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'code/')))
+from component.model import LRCN
 from dotenv import load_dotenv
 import json
 # Load environment variables from .env file
 load_dotenv()
-
-def predict_video_class(video_path, model_path, class_names = json.loads(os.getenv("CLASSES_LIST")), sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH")), device=None):
+MODEL_PATH = os.getenv("MODEL_PATH")
+def predict_video_class(video_path, model_path = MODEL_PATH, class_names = json.loads(os.getenv("CLASSES_LIST")), sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH")), device=None):
     """
     Predicts the class of a video using a trained LRCN model.
 
@@ -70,7 +72,8 @@ def predict_video_class(video_path, model_path, class_names = json.loads(os.gete
     
     return class_names[predicted_idx]
 
-# video_path = "/home/ubuntu/Human-Activity-Recognition/Data/UCF50/BaseballPitch/v_BaseballPitch_g01_c01.avi"
-# model_path = "/home/ubuntu/Human-Activity-Recognition/code/component/models/lrcn_best_2025_04_25__19_49_33.pth"
-# predicted_class = predict_video_class(video_path, model_path)
-# print("Predicted Class:", predicted_class)
+#Example
+# if __name__ == "__main__":
+#     video_path = "/home/ubuntu/Human-Activity-Recognition/Data/UCF50/BaseballPitch/v_BaseballPitch_g01_c01.avi"
+#     predicted_class = predict_video_class(video_path)
+#     print("Predicted Class:", predicted_class)
