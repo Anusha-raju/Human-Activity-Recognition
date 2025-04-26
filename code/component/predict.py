@@ -72,8 +72,9 @@ def predict_video_class(video_path, model_path = MODEL_PATH, class_names = json.
     
     return class_names[predicted_idx]
 
-#Example
-# if __name__ == "__main__":
+## Example
+if __name__ == "__main__":
+    pass
 #     video_path = "/home/ubuntu/Human-Activity-Recognition/Data/UCF50/BaseballPitch/v_BaseballPitch_g01_c01.avi"
 #     predicted_class = predict_video_class(video_path)
 #     print("Predicted Class:", predicted_class)

@@ -3,10 +3,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
-from model import LRCN
-from utils.dataset import VideoDataset
-from utils.visualization import plot_metrics
-from utils.utility import get_current_lr, save_best_model, evaluate_model
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'code/')))
+from component.model import LRCN
+from component.utils.dataset import VideoDataset
+from component.utils.visualization import plot_metrics
+from component.utils.utility import get_current_lr, save_best_model, evaluate_model
 from torchvision import transforms
 from dotenv import load_dotenv
 import datetime
@@ -134,9 +136,15 @@ def train_and_evaluate():
     logging.info(f"Final Validation Accuracy: {validation_accuracy:.2f}%")
     logging.info(f"Final Test Accuracy: {test_accuracy:.2f}%")
 
+    #print
+    print(f"Final Train Accuracy: {train_accuracy:.2f}%")
+    print(f"Final Validation Accuracy: {validation_accuracy:.2f}%")
+    print(f"Final Test Accuracy: {test_accuracy:.2f}%")
+
     # Plot metrics (accuracy, loss)
     plot_metrics(train_accuracies, test_accuracies, train_losses, test_losses)
 
 # Call the training and evaluation function
 if __name__ == "__main__":
-    train_and_evaluate()
+    # train_and_evaluate()
+    pass

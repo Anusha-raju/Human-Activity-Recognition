@@ -9,8 +9,12 @@ code/component/utils/__pycache__/
 code/component/outputs/
 code/component/saved_models/
 code/component/models/
+code/maincode/models/
+code/maincode/outputs/
 
 # Ignore the 'train.log' file
 code/component/train.log
 code/component/train_.log
 venv/
+code/maincode/train.log
+code/maincode/train_.log
