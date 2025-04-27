@@ -24,16 +24,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def evaluate_model(model, data_loader, criterion, data_type="Test"):
     """
-    Evaluate the model on a given dataset (train/validation/test).
+    Evaluates the performance of the model on a specific dataset (train/validation/test).
     
     Args:
-        model (nn.Module): The trained model.
-        data_loader (DataLoader): The DataLoader for the dataset.
-        data_type (str): The type of the dataset (train/validation/test).
+        model (nn.Module): The model that is being evaluated.
+        data_loader (DataLoader): A DataLoader object that loads the dataset.
+        criterion (torch.nn.Module): The loss function used to compute the model's error.
+        data_type (str, optional): Specifies the type of dataset (e.g., "Test", "Train", "Validation").
     
     Returns:
-        accuracy (float): The accuracy of the model on the dataset.
-        loss (float): The loss of the model on the dataset.
+        accuracy (float): The percentage accuracy of the model on the dataset.
+        loss (float): The average loss computed over the dataset.
     """
     model.eval()
     total_loss, correct, total = 0, 0, 0
@@ -53,11 +54,11 @@ def evaluate_model(model, data_loader, criterion, data_type="Test"):
 
 def save_best_model(model, model_state_dict):
     """
-    Save the best model based on the test accuracy.
-    
+    Saves the best model based on its test accuracy.
+
     Args:
-        model (nn.Module): The model to save.
-        model_state_dict (dict): The state dictionary of the best model.
+        model (nn.Module): The model to be saved.
+        model_state_dict (dict): The model's state dictionary containing the weights.
     
     Returns:
         None
@@ -74,10 +75,10 @@ def get_current_lr(optimizer):
     Retrieves the current learning rate from the optimizer's parameter groups.
 
     Args:
-        optimizer (torch.optim.Optimizer): The optimizer object from which the learning rate will be extracted.
-
+        optimizer (torch.optim.Optimizer): The optimizer whose learning rate will be extracted.
+    
     Returns:
-        float: The current learning rate from the optimizer's first parameter group.
+        float: The current learning rate from the first parameter group of the optimizer.
 
     Example:
         current_lr = get_current_lr(optimizer)
@@ -88,11 +89,11 @@ def get_current_lr(optimizer):
 
 def load_model():
     """
-    Loads the pre-trained model.
+    Loads a pre-trained model from disk.
 
     Args:
     Returns:
-        model: The loaded LRCN model.
+        model: The pre-trained LRCN model.
     """
     model = LRCN(num_classes=len(json.loads(os.getenv("CLASSES_LIST"))))
     model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
@@ -102,26 +103,25 @@ def load_model():
 
 def process_video_frames(video_path):
     """
-    Processes video frames and converts them to tensors.
+    Processes video frames, converting them to tensors for model input.
 
     Args:
-        video_path (str): Path to the input video file.
-        sequence_length (int): Number of frames to extract.
-        transform (torchvision.transforms.Compose): The transformation to apply to each frame.
-
+        video_path (str): The path to the input video file.
+    
     Returns:
-        frames (list): List of original frames.
-        transformed (list): List of transformed frames (tensor format).
+        frames (list): A list of original frames from the video.
+        transformed (list): A list of transformed frames, each represented as a tensor.
     """
-    image_height=int(os.getenv("IMAGE_HEIGHT"))
-    image_width=int(os.getenv("IMAGE_WIDTH"))
+    image_height = int(os.getenv("IMAGE_HEIGHT"))
+    image_width = int(os.getenv("IMAGE_WIDTH"))
 
-    sequence_length=int(os.getenv("SEQUENCE_LENGTH"))
-    # Define the same transform used in training
+    sequence_length = int(os.getenv("SEQUENCE_LENGTH"))
+    # Define the transformations to apply to each frame (resize and to tensor)
     transform = transforms.Compose([
         transforms.Resize((image_height, image_width)),
         transforms.ToTensor()
     ])
+    
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -140,7 +140,7 @@ def process_video_frames(video_path):
         pil_image = Image.fromarray(resized)
         tensor = transform(pil_image)
         frames.append(frame)  # Original frame
-        transformed.append(tensor)  # Transformed frame (used for prediction)
+        transformed.append(tensor)  # Transformed frame (used for model prediction)
     
     cap.release()
     return frames, transformed

@@ -26,13 +26,13 @@ logging.basicConfig(filename=os.getenv("LOG_FILE_PATH"),
 
 # Set seed for reproducibility
 torch.manual_seed(int(os.getenv("SEED", 27)))
-logging.info("Retained old model, added bn and dropout, added lr scheduler (initial lr = 0.0001,stepsize = 6)")
+logging.info("Retained old model")
 
 # Data and Model Configurations
 DATASET_DIR = os.getenv("DATASET_DIR")
 CLASSES_LIST = json.loads(os.getenv("CLASSES_LIST"))
 
-# HYPERPARAMS
+# Hyperparameters setup
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 4))
 EPOCHS = int(os.getenv("EPOCHS", 30))
 LR = float(os.getenv("LR", 0.1))
@@ -42,7 +42,6 @@ GAMMA = float(os.getenv("GAMMA", 0.1))
 # TRAIN/VALIDATION SPLIT
 TRAIN_SPLIT = float(os.getenv("TRAIN_SPLIT", 0.6))
 VALIDATION_SPLIT = float(os.getenv("VALIDATION_SPLIT", 0.2))
-
 
 # Initialize dataset and dataloaders
 dataset = VideoDataset(DATASET_DIR, CLASSES_LIST)
@@ -72,11 +71,10 @@ def train_and_evaluate():
     """
     Trains the model for the specified number of epochs and evaluates it on the train, validation, and test datasets.
     
-    The function tracks and logs the training process, including loss, accuracy, and learning rate.
-    It also saves the best model based on test accuracy and evaluates it on all datasets.
+    This function handles the training loop and evaluation at each epoch. It logs performance metrics like loss, accuracy, 
+    and learning rate during training and saves the best-performing model based on test accuracy.
 
-    Returns:
-        None
+    The function returns nothing. The final evaluation includes performance metrics for training, validation, and test sets.
     """
     global best_test_acc, best_model_state_dict
 
@@ -97,16 +95,17 @@ def train_and_evaluate():
             correct += (preds == labels).sum().item()
             total += labels.size(0)
 
+        # Calculate and log training accuracy
         train_acc = 100 * correct / total
         train_losses.append(total_loss)
         train_accuracies.append(train_acc)
 
-        # Test Step
+        # Test Step: Evaluate the model on the test dataset
         test_acc, test_loss = evaluate_model(model, test_dl, criterion, "Test")
         test_losses.append(test_loss)
         test_accuracies.append(test_acc)
 
-        # Track best model
+        # Track best model based on test accuracy
         if test_acc > best_test_acc:
             best_test_acc = test_acc
             best_model_state_dict = model.state_dict()
@@ -114,19 +113,19 @@ def train_and_evaluate():
         # Update learning rate scheduler
         scheduler.step()
 
+        # Log current learning rate
         current_lr = get_current_lr(optimizer)
-
         logging.info(f"Epoch: {epoch+1}, Train Acc: {train_acc:.2f}, Test Acc: {test_acc:.2f}, LR: {current_lr:.6f}")
         print(f"[Epoch {epoch+1}] Train Acc: {train_acc:.2f}%, Test Acc: {test_acc:.2f}%, LR: {current_lr:.6f}")
 
-    # Save the best model
+    # Save the best model based on test accuracy
     save_best_model(model, best_model_state_dict)
 
-    # Load best model for final evaluation
+    # Load the best model for final evaluation
     model.load_state_dict(best_model_state_dict)
     model.eval()
 
-    # Evaluate performance on all datasets
+    # Final Evaluation: Evaluate model on train, validation, and test datasets
     train_accuracy = evaluate_model(model, train_dl, criterion, "Train")[0]
     validation_accuracy = evaluate_model(model, val_dl, criterion, "Validation")[0]
     test_accuracy = evaluate_model(model, test_dl, criterion, "Test")[0]
@@ -136,15 +135,17 @@ def train_and_evaluate():
     logging.info(f"Final Validation Accuracy: {validation_accuracy:.2f}%")
     logging.info(f"Final Test Accuracy: {test_accuracy:.2f}%")
 
-    #print
+    # Print final evaluation results
     print(f"Final Train Accuracy: {train_accuracy:.2f}%")
     print(f"Final Validation Accuracy: {validation_accuracy:.2f}%")
     print(f"Final Test Accuracy: {test_accuracy:.2f}%")
 
-    # Plot metrics (accuracy, loss)
+    # Plot metrics (accuracy and loss)
     plot_metrics(train_accuracies, test_accuracies, train_losses, test_losses)
 
-# Call the training and evaluation function
+# Call the training and evaluation function if this script is executed
 if __name__ == "__main__":
+    # Train and evaluate the model
+    # Uncomment the next line to run the training process
     # train_and_evaluate()
     pass

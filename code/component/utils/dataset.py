@@ -22,7 +22,7 @@ class VideoDataset(Dataset):
         sequence_length (int, optional): Number of frames per video sequence (default is 20).
         image_height (int, optional): Height to which each video frame will be resized (default is 64).
         image_width (int, optional): Width to which each video frame will be resized (default is 64).
-        transform (callable, optional): A function/transform to apply to each frame (default is None).
+        transform (callable, optional): A function/transform to apply to each frame (default is a composed transformation for augmentation).
     """
     def __init__(self, data_dir, classes, sequence_length=int(os.getenv("SEQUENCE_LENGTH")), image_height=int(os.getenv("IMAGE_HEIGHT")), image_width=int(os.getenv("IMAGE_WIDTH"))):
         """
@@ -34,7 +34,7 @@ class VideoDataset(Dataset):
             sequence_length (int): Number of frames to sample from each video.
             image_height (int): Height to which each video frame will be resized.
             image_width (int): Width to which each video frame will be resized.
-            transform (callable, optional): A function/transform to apply to each frame.
+            transform (callable, optional): A function/transform to apply to each frame (default is a composed transformation for augmentation).
         """
         self.data_dir = os.path.join(project_root, data_dir)
         self.classes = classes
@@ -106,10 +106,10 @@ class VideoDataset(Dataset):
 
     def __len__(self):
         """
-        Returns the total number of video samples in the dataset.
+        Returns the total number of video sequences in the dataset.
 
         Returns:
-            int: Number of video samples in the dataset.
+            int: Number of video sequences in the dataset.
         """
         return len(self.videos)
 
@@ -123,7 +123,9 @@ class VideoDataset(Dataset):
 
         Returns:
             tuple: (video_tensor, label_tensor)
-                - video_tensor (torch.Tensor): Tensor of shape [T, C, H, W] representing the video sequence.
+                - video_tensor (torch.Tensor): Tensor of shape [T, C, H, W] representing the video sequence, 
+                  where T is the number of frames, C is the number of channels (3 for RGB), H is the height, 
+                  and W is the width of each frame.
                 - label_tensor (torch.Tensor): Tensor of the corresponding label (class index).
         """
         video = self.videos[idx]  # Get the video sequence
