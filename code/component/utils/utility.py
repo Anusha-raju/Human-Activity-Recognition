@@ -8,19 +8,64 @@ import json
 from torchvision import transforms
 from dotenv import load_dotenv
 load_dotenv()
+import requests
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'code/')))
-
+import boto3
+from pathlib import Path
 from component.model import LRCN
+from component.utils.visualization import plot_confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import multilabel_confusion_matrix
+import numpy as np
 
 # MODEL_DIR TO SAVED MODEL
 MODEL_DIR = os.getenv("MODEL_DIR", "models")
 MODEL_PATH = os.getenv("MODEL_PATH")
+
 # Logging setup using logging module
 logging.basicConfig(filename=os.getenv("LOG_FILE_PATH"),
                     level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def download_model_from_s3():
+    local_path = os.getenv("LOCAL_MODEL_PATH")
+    # bucket_name = os.getenv("BUCKET_NAME")
+    s3_key = os.getenv("MODEL_PATH")
+    # s3 = boto3.client('s3')
+    # Path(local_path).parent.mkdir(parents=True, exist_ok=True)  # create dir if not exists
+    # s3.download_file(bucket_name, s3_key, local_path)
+    response = requests.get(s3_key)
+    with open(local_path, 'wb') as f:
+        f.write(response.content)
+    print(f"Downloaded model to {local_path}")
+
+
+def find_model_path():
+    current_file = Path(__file__).resolve()
+
+    # Try two levels up
+    two_up_dir = current_file.parents[2] / "code" / "maincode" / "models"
+    if two_up_dir.exists() and any(two_up_dir.iterdir()):
+        model_files = sorted(two_up_dir.iterdir(), key=lambda x: x.stat().st_mtime)
+        return model_files[-1]
+
+    # If not found, try one level up
+    one_up_dir = current_file.parents[1] / "code" / "maincode" / "models"
+    if one_up_dir.exists() and any(one_up_dir.iterdir()):
+        model_files = sorted(two_up_dir.iterdir(), key=lambda x: x.stat().st_mtime)
+        return model_files[-1]
+        # first_file = next(one_up_dir.iterdir())
+        # return first_file
+    three_up_dir = current_file.parents[3] / "code" / "maincode" / "models"
+    if three_up_dir.exists() and any(three_up_dir.iterdir()):
+        model_files = sorted(three_up_dir.iterdir(), key=lambda x: x.stat().st_mtime)
+        return model_files[-1]
+
+    # If neither found
+    raise FileNotFoundError("No model file found in 'code/maincode/models' folder.")
+
 
 def evaluate_model(model, data_loader, criterion, data_type="Test"):
     """
@@ -36,6 +81,9 @@ def evaluate_model(model, data_loader, criterion, data_type="Test"):
         accuracy (float): The percentage accuracy of the model on the dataset.
         loss (float): The average loss computed over the dataset.
     """
+    y_true = []
+    y_pred = []
+    class_names = json.loads(os.getenv("CLASSES_LIST"))
     model.eval()
     total_loss, correct, total = 0, 0, 0
     with torch.no_grad():
@@ -45,9 +93,29 @@ def evaluate_model(model, data_loader, criterion, data_type="Test"):
             loss = criterion(outputs, labels)
             total_loss += loss.item()
             preds = outputs.argmax(dim=1)
+            
+            y_true.extend(labels.cpu().numpy())
+            y_pred.extend(preds.cpu().numpy())
             correct += (preds == labels).sum().item()
             total += labels.size(0)
+    # Calculate confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    mcm = multilabel_confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
+    total_cm = mcm.sum(axis=0)
+    tn, fp, fn, tp = total_cm.ravel()
+
+    logging.info(f"Overall True Positives: {tp}")
+    logging.info(f"Overall True Negatives: {tn}")
+    logging.info(f"Overall False Positives: {fp}")
+    logging.info(f"Overall False Negatives: {fn}")
     
+    # Normalize confusion matrix
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    plot_confusion_matrix(cm_normalized , class_names)
+    # Print classification report
+    print("\nClassification Report:")
+    print(classification_report(y_true, y_pred, target_names=class_names))
+
     accuracy = 100 * correct / total
     avg_loss = total_loss / len(data_loader)
     return accuracy, avg_loss
@@ -96,7 +164,13 @@ def load_model():
         model: The pre-trained LRCN model.
     """
     model = LRCN(num_classes=len(json.loads(os.getenv("CLASSES_LIST"))))
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model_path = MODEL_PATH
+    if not model_path:
+        model_path = find_model_path()
+    else:
+        download_model_from_s3()
+        model_path = os.getenv("LOCAL_MODEL_PATH")
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     model.eval()
     return model

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import seaborn as sns
 
 # Load output path for plots from environment variable
 plot_output_path = os.getenv("PLOT_OUTPUT_PATH")
@@ -57,4 +58,21 @@ def plot_metrics(train_acc, test_acc, train_loss, test_loss):
 
     # Save the loss curve plot to the output path
     plt.savefig(os.path.join(plot_output_path, 'loss_curve.png'))
+    plt.close()
+
+
+def plot_confusion_matrix(cm_normalized , class_names):
+    # Plot confusion matrix
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(cm_normalized, annot=True, cmap='Blues', fmt=".2f",
+                xticklabels=class_names,
+                yticklabels=class_names)
+
+    plt.title('Normalized Confusion Matrix for HAR Model')
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+    plt.xticks(rotation=45)
+    plt.yticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_output_path, 'confusion_matrix.png'))
     plt.close()
