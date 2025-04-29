@@ -67,7 +67,7 @@ def find_model_path():
     raise FileNotFoundError("No model file found in 'code/maincode/models' folder.")
 
 
-def evaluate_model(model, data_loader, criterion, data_type="Test"):
+def evaluate_model(model, data_loader, criterion, data_type="Test", confusion_matrix_ = False):
     """
     Evaluates the performance of the model on a specific dataset (train/validation/test).
     
@@ -98,23 +98,24 @@ def evaluate_model(model, data_loader, criterion, data_type="Test"):
             y_pred.extend(preds.cpu().numpy())
             correct += (preds == labels).sum().item()
             total += labels.size(0)
+    if confusion_matrix_:
     # Calculate confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
-    mcm = multilabel_confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
-    total_cm = mcm.sum(axis=0)
-    tn, fp, fn, tp = total_cm.ravel()
+        cm = confusion_matrix(y_true, y_pred)
+        mcm = multilabel_confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
+        total_cm = mcm.sum(axis=0)
+        tn, fp, fn, tp = total_cm.ravel()
 
-    logging.info(f"Overall True Positives: {tp}")
-    logging.info(f"Overall True Negatives: {tn}")
-    logging.info(f"Overall False Positives: {fp}")
-    logging.info(f"Overall False Negatives: {fn}")
-    
-    # Normalize confusion matrix
-    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-    plot_confusion_matrix(cm_normalized , class_names)
-    # Print classification report
-    print("\nClassification Report:")
-    print(classification_report(y_true, y_pred, target_names=class_names))
+        logging.info(f"Overall True Positives: {tp}")
+        logging.info(f"Overall True Negatives: {tn}")
+        logging.info(f"Overall False Positives: {fp}")
+        logging.info(f"Overall False Negatives: {fn}")
+        
+        # Normalize confusion matrix
+        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        plot_confusion_matrix(cm_normalized , class_names)
+        # Print classification report
+        print("\nClassification Report:")
+        print(classification_report(y_true, y_pred, target_names=class_names))
 
     accuracy = 100 * correct / total
     avg_loss = total_loss / len(data_loader)

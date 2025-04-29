@@ -126,9 +126,9 @@ def train_and_evaluate():
     model.eval()
 
     # Final Evaluation: Evaluate model on train, validation, and test datasets
-    train_accuracy = evaluate_model(model, train_dl, criterion, "Train")[0]
-    validation_accuracy = evaluate_model(model, val_dl, criterion, "Validation")[0]
-    test_accuracy = evaluate_model(model, test_dl, criterion, "Test")[0]
+    train_accuracy = evaluate_model(model, train_dl, criterion, "Train",confusion_matrix_ = True)[0]
+    validation_accuracy = evaluate_model(model, val_dl, criterion, "Validation",confusion_matrix_ = True)[0]
+    test_accuracy = evaluate_model(model, test_dl, criterion, "Test",confusion_matrix_ = True)[0]
 
     # Log Final Accuracies
     logging.info(f"Final Train Accuracy: {train_accuracy:.2f}%")
