@@ -1,0 +1,23 @@
+# Ignore the 'Data' directory
+Data/
+
+# Ignore the '__pycache__' directories in specific locations
+code/component/__pycache__/
+code/component/utils/__pycache__/
+
+# Ignore the 'outputs' and 'saved_models' directories
+code/component/outputs/
+code/component/saved_models/
+code/component/models/
+code/maincode/models/
+code/maincode/outputs/
+
+# Ignore the 'train.log' file
+code/component/train.log
+code/component/train_.log
+venv/
+code/maincode/train.log
+code/maincode/train_.log
+
+demo/uploads/
+code/maincode/analysis/

@@ -1,0 +1,28 @@
+video {
+    border: 2px solid #333;
+    border-radius: 10px;
+    width: 100%;
+}
+
+body, html {
+    height: 100%;
+}
+.center-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+.small-video {
+    width: 720px;
+    height: 340px;
+    object-fit: cover;
+    background-color: black;
+}
+
+/* Input file styling */
+.custom-file-input {
+    width: 250px;
+}
