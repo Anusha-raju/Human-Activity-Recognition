@@ -111,7 +111,7 @@ def train_and_evaluate():
             best_model_state_dict = model.state_dict()
 
         # Update learning rate scheduler
-        scheduler.step()
+        # scheduler.step()
 
         # Log current learning rate
         current_lr = get_current_lr(optimizer)
