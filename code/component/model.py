@@ -25,5 +25,3 @@ class LRCN(nn.Module):
         lstm_out, _ = self.lstm(x)
         x = self.fc(lstm_out[:, -1, :])
         return x
-
-

@@ -4,9 +4,11 @@
 
 This project builds a **Human Activity Recognition** system using the **Long-term Recurrent Convolutional Network (LRCN)** architecture to accurately classify activities from video data. It features a user-friendly **Flask web application** that allows users to upload videos and instantly receive activity predictions, creating an interactive and accessible experience.
 
-Project Demo:
+Project Demo: [Human Activity Recognition using LRCN](https://youtu.be/lslaPkM5nkA)
 
-Project Github:
+Project Github: [https://github.com/Anusha-raju/Human-Activity-Recognition.git](https://github.com/Anusha-raju/Human-Activity-Recognition.git)
+
+Final Model: [https://dlproject2025.s3.us-east-1.amazonaws.com/lrcn_best_2025_04_30__18_30_29.pth](https://dlproject2025.s3.us-east-1.amazonaws.com/lrcn_best_2025_04_30__18_30_29.pth)
 
 ---
 
@@ -25,7 +27,7 @@ git clone https://github.com/Anusha-raju/Human-Activity-Recognition.git
   
 
 ```
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
@@ -90,19 +92,14 @@ The project provides scripts for training, predicting and analysing the model. H
   
 3. Post-Training Analysis:
   
-  1. Generate Heatmap:
+  Generate Heatmap:
     
   
   ```
   python main.py --opt "analysis" --path /path/to/video --method "heatmap"
   ```
   
-  2. Generate per-frame activity labels:
-    
-  
-  ```
-  python main.py --opt "analysis" --path /path/to/video --method "activity_labels"
-  ```
+
   
 
 ---
@@ -110,6 +107,11 @@ The project provides scripts for training, predicting and analysing the model. H
 ## Demo:
 
 To run the flask application
+
+```
+sudo apt update
+sudo apt install ffmpeg
+```
 
 ```
 cd demo/

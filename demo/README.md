@@ -1,6 +1,8 @@
 # Demo Directory Overview
 This folder contains the Flask web application for the Human Activity Recognition (HAR) project. The app allows users to upload video files and receive real-time activity predictions from the trained model. It provides an interactive way to test the HAR system.
 
+Project Demo: [Human Activity Recognition using LRCN](https://youtu.be/lslaPkM5nkA)
+
 ## Folder Structure
 
 ```plaintext
@@ -41,6 +43,11 @@ The main Flask application script that:
 ## Running the Demo
 
 To run the Flask application:
+
+```
+sudo apt update
+sudo apt install ffmpeg
+```
 
 1. Navigate to the `demo/` folder:
   
