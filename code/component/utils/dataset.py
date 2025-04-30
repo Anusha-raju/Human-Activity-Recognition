@@ -44,10 +44,6 @@ class VideoDataset(Dataset):
         self.transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomRotation(20),
-            transforms.RandomResizedCrop(size=(self.image_height, self.image_width), scale=(0.8, 1.0)),
-            transforms.GaussianBlur(kernel_size=5),
-            transforms.RandomGrayscale(p=0.1),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
             transforms.ToTensor(),
         ])
         self.videos = []  # List to store videos as sequences of frames
